@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recipe Hub — рецепты, холодильник и режим готовки</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/features.css">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">🍳 Recipe Hub</div>
+    <input id="search" class="search" type="search" placeholder="Поиск по названию или ингредиенту…" autocomplete="off">
+    <button id="favToggle" class="chip fav-toggle" type="button" aria-pressed="false">
+        ♥ Избранное <span id="favCount" class="badge">0</span>
+    </button>
+    <button id="authBtn" class="btn ghost small" type="button">👤 Войти</button>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <h1>Готовьте из того, что есть</h1>
+        <p>Отметьте продукты из холодильника — подберём завтрак, обед или ужин с точной калорийностью и граммовкой на нужное число человек.</p>
+    </section>
+
+    <nav class="tabs" aria-label="Разделы">
+        <button class="tab active" type="button" data-view="catalog">📖 Каталог рецептов</button>
+        <button class="tab" type="button" data-view="fridge">🧊 Мой холодильник</button>
+
+        <div class="people-box" title="Количество человек влияет на порции во всех разделах">
+            <span class="people-label">👥 Едят:</span>
+            <div class="stepper">
+                <button id="peopleMinus" type="button" aria-label="Меньше человек">−</button>
+                <input id="peopleNumber" type="number" min="1" max="20" value="2" aria-label="Количество человек">
+                <button id="peoplePlus" type="button" aria-label="Больше человек">+</button>
+            </div>
+            <span id="goalInfo" class="goal-info"></span>
+        </div>
+    </nav>
+
+    <p id="profileNote" class="profile-note"></p>
+
+    <!-- ===== Каталог ===== -->
+    <div id="viewCatalog">
+        <section class="filters" aria-label="Фильтры">
+            <div id="categoryChips" class="chips"></div>
+            <div class="filter-row">
+                <label>Время
+                    <select id="timeFilter">
+                        <option value="0">Любое</option>
+                        <option value="15">до 15 мин</option>
+                        <option value="30">до 30 мин</option>
+                        <option value="45">до 45 мин</option>
+                        <option value="60">до 60 мин</option>
+                    </select>
+                </label>
+                <label>Калории (на порцию)
+                    <select id="calFilter">
+                        <option value="0">Любые</option>
+                        <option value="200">до 200 ккал</option>
+                        <option value="300">до 300 ккал</option>
+                        <option value="400">до 400 ккал</option>
+                        <option value="500">до 500 ккал</option>
+                        <option value="700">до 700 ккал</option>
+                    </select>
+                </label>
+                <label>Сортировка
+                    <select id="sortSelect">
+                        <option value="default">По умолчанию</option>
+                        <option value="time">Сначала быстрые</option>
+                        <option value="cal">Сначала лёгкие</option>
+                        <option value="name">По алфавиту</option>
+                    </select>
+                </label>
+                <button id="resetFilters" class="btn ghost" type="button">Сбросить</button>
+            </div>
+        </section>
+
+        <p id="resultsInfo" class="results-info" aria-live="polite"></p>
+        <section id="grid" class="grid" aria-label="Каталог рецептов"></section>
+    </div>
+
+    <!-- ===== Холодильник ===== -->
+    <div id="viewFridge" hidden>
+        <div class="fridge-layout">
+            <section class="fridge-panel" aria-label="Продукты">
+                <div class="fridge-head">
+                    <h2>🧊 Что у вас есть?</h2>
+                    <span class="fridge-count">Выбрано: <b id="fridgeCount">0</b></span>
+                </div>
+                <div class="fridge-tools">
+                    <input id="productSearch" class="search" type="search" placeholder="Найти продукт…" autocomplete="off">
+                    <button id="fridgeClear" class="btn ghost small" type="button">Очистить</button>
+                </div>
+                <div id="productGroups"></div>
+            </section>
+
+            <section class="fridge-results" aria-label="Подходящие блюда">
+                <h2>🍽 Что приготовить</h2>
+                <div id="mealChips" class="chips"></div>
+                <div class="filter-row">
+                    <label>Показывать
+                        <select id="fridgeMode">
+                            <option value="miss2">Не хватает до 2 продуктов</option>
+                            <option value="full">Только то, что можно готовить сейчас</option>
+                            <option value="all">Всё, где есть хоть что-то из моих продуктов</option>
+                        </select>
+                    </label>
+                </div>
+                <p id="fridgeInfo" class="results-info" aria-live="polite"></p>
+                <div id="fridgeGrid" class="grid" aria-label="Блюда из холодильника"></div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<!-- Окно рецепта -->
+<div id="recipeModal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="icon-btn modal-close" type="button" data-close-modal aria-label="Закрыть">✕</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<!-- Окно входа / регистрации / профиля -->
+<div id="dialog" class="modal" hidden>
+    <div class="modal-backdrop" data-close-dialog></div>
+    <div class="modal-card narrow" role="dialog" aria-modal="true">
+        <button class="icon-btn modal-close" type="button" data-close-dialog aria-label="Закрыть">✕</button>
+        <div id="dialogBody"></div>
+    </div>
+</div>
+
+<!-- Режим готовки -->
+<div id="cookMode" class="cook" hidden>
+    <div class="cook-top">
+        <div>
+            <div id="cookTitle" class="cook-title"></div>
+            <div id="cookCounter" class="cook-counter"></div>
+        </div>
+        <div class="cook-top-actions">
+            <button id="voiceToggle" class="btn ghost light" type="button" aria-pressed="false">🔇 Голос выкл.</button>
+            <button id="cookExit" class="btn ghost light" type="button">Выйти ✕</button>
+        </div>
+    </div>
+
+    <div class="progress"><div id="cookProgress" class="progress-bar"></div></div>
+
+    <div class="cook-main">
+        <p id="cookStepText" class="cook-step-text"></p>
+
+        <div id="timerPanel" class="timer-panel" hidden>
+            <div id="timerDisplay" class="timer-display">00:00</div>
+            <div class="timer-bar"><div id="timerBar" class="timer-bar-fill"></div></div>
+            <div class="timer-actions">
+                <button id="timerStart" class="btn primary" type="button">▶ Старт</button>
+                <button id="timerReset" class="btn ghost light" type="button">⟲ Сброс</button>
+                <button id="timerPlus" class="btn ghost light" type="button">+1 мин</button>
+            </div>
+        </div>
+
+        <details class="cook-ingredients">
+            <summary>🧾 Ингредиенты (<span id="cookServings"></span>)</summary>
+            <ul id="cookIngredients"></ul>
+        </details>
+    </div>
+
+    <div class="cook-nav">
+        <button id="cookPrev" class="btn big ghost light" type="button">← Назад</button>
+        <button id="cookRepeat" class="btn big ghost light" type="button" title="Повторить голосом">🔊</button>
+        <button id="cookNext" class="btn big primary" type="button">Далее →</button>
+    </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/data.js"></script>
+<script src="js/recipes2.js"></script>
+<script src="js/products.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
